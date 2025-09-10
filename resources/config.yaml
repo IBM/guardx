@@ -1,0 +1,11 @@
+logging:
+  level: 'DEBUG'
+
+#Default values for analyzer
+analysis:
+  sensitivity: "low"
+
+
+execution:
+  #docker_image: "lab-validator:0.1.0"
+  policy_seccomp: "log"

@@ -1,0 +1,126 @@
+[tool.poetry]
+name = "guardx"
+version = "0.2.0"
+description = "A Python library for code analysis and sandboxing"
+authors = ["IBM Research"]
+readme = "README.md"
+packages = [{include = "guardx", from = "src"}]
+include = [
+    { path = "resources", format = ["sdist", "wheel"] }
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+guardx = {reference = "guardx.tools.cli.guardx:main", type = "console"}
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+docker = "^7.1.0"
+pydantic = "^2.7.1"
+pyelftools = "^0.31"
+pyseccomp = "^0.1.2"
+pyyaml = "^6.0.1"
+requests = "2.32.4"
+urllib3 = "2.5.0"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+pytest = ">=8.0.0"
+pytest-cov = "^4.1.0"
+pytest-dotenv = "^0.5.2"
+ruff = "^0.3.3"
+Sphinx = "^8.0.2"
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ['src/guardx/_version.py']
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [ # See docs for available rules: https://docs.astral.sh/ruff/rules
+  "B",   # bugbear (assignment to os.environ, assert False, ...)
+  "C",   # mccabe (too complex structures, ...)
+  "D",   # pydocstyle (docstrings)
+  "E",   # error (line too long, syntax error, ...)
+  "F",   # pyflakes (unused imports, variables, ...)
+  "I",   # isort
+  "W",   # pycodestyle (indentation, whitespace, ...)
+  "T20", # flake8-print (print found, pprint found, ...)
+]
+ignore = [
+  "C419", # Unnecessary list comprehension (false positives)
+  "D103", # Missing docstring in public function
+  "D104", # Missing docstring in public package
+  "D105", # Missing docstring in magic method
+  "B905", # Incompatible rule when supporting 3.9 and 3.10+
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 18
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403", "F405"] # Ignore import violations in all `__init__.py` files.
+"examples/**/*.py" = ["T201", "T203", "B904"] # Examples can include print and pprint, ignore exception propagation
+
+[tool.ruff.lint.isort]
+known-first-party = ["guardx"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.poe.tasks.dev]
+help = "Install package from sources in editable mode and tooling for development"
+cmd = "poetry install --with=dev"
+
+[tool.poe.tasks.install]
+help = "Install package from sources"
+sequence = [{ cmd = "poetry build" }, { cmd = "pip install dist/*.whl" }]
+
+[tool.poe.tasks.uninstall]
+help = "Uninstall package"
+cmd = "pip uninstall guardx"
+
+[tool.poe.tasks.check]
+help = "Check for lint errors"
+shell = """
+  black --check -S src/
+  black --check -S tests/
+  ruff check src/
+  ruff check tests/
+"""
+
+[tool.poe.tasks.lint]
+help = "Check and fix lint errors"
+shell = """
+  black -S src/
+  black -S tests/
+  ruff check --fix src/
+  ruff check --fix tests/
+"""
+
+[tool.poe.tasks.lock]
+help = "Lock the project dependencies"
+cmd = "poetry lock"
+
+[tool.poe.tasks.test]
+help = "Run all tests"
+cmd = "pytest tests"
+
+[tool.poe.tasks.clean]
+help = "Remove all artifacts and builds"
+shell = """
+  find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
+	rm -rf *.egg-info  src/*.egg-info .pytest_cache tests/.pytest_cache build dist .ruff_cache .coverage
+"""

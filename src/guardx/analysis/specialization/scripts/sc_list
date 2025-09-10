@@ -1,0 +1,4 @@
+#!/bin/bash
+TARGET=$(mktemp -p /tmp)
+printf "$1" | codon build -release -exe -o $TARGET
+echo $TARGET
