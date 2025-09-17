@@ -133,3 +133,4 @@ dmypy.json
 
 # misc
 .DS_Store
+.gitconfig
