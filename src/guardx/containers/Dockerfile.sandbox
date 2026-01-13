@@ -2,7 +2,7 @@ FROM python:3.11
 
 RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/sources.list.d/backports.list \
 	&& apt update \
-	&& apt --no-install-recommends install -y curl/bookworm-backports \
+	&& apt --no-install-recommends install -y curl \
 	&& apt --no-install-recommends install -y chromium chromium-driver libgdal-dev \
 	&& apt clean \
 	&& python3 -m pip install npyfile \
