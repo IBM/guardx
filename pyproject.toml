@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "guardx"
-version = "0.2.0"
+version = "0.2.1"
 description = "A Python library for code analysis and sandboxing"
 authors = ["IBM Research"]
 readme = "README.md"
