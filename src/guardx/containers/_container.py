@@ -1,4 +1,5 @@
 import io
+import json
 import logging
 import tarfile
 from importlib import resources as impresources
@@ -100,6 +101,35 @@ class Container:
             )
 
         # copy the tarstream in to the docker container.
+        tarstream.seek(0)
+        self.container.put_archive("/", tarstream)
+        return self.container
+
+    def put_json(self, file_name, data):
+        """Put JSON data into the container as a file.
+
+        Args:
+        file_name: Name of file to be created in container
+        data: Dictionary to be serialized as JSON
+        """
+        if self.container is None:
+            raise RuntimeError("Error in put json. Container not started. call .start_container() first")
+        
+        # Serialize the data to JSON string
+        json_str = json.dumps(data)
+        encoded_json = json_str.encode(encoding='utf-8')
+        
+        # Create tar archive with the JSON file
+        tarstream = io.BytesIO()
+        with tarfile.open(fileobj=tarstream, mode='w') as sh:
+            json_tar_info = tarfile.TarInfo(name=file_name)
+            json_tar_info.size = len(encoded_json)
+            sh.addfile(
+                tarinfo=json_tar_info,
+                fileobj=io.BytesIO(encoded_json),
+            )
+        
+        # Copy the tarstream into the docker container
         tarstream.seek(0)
         self.container.put_archive("/", tarstream)
         return self.container

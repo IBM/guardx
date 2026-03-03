@@ -1,4 +1,5 @@
 """Secure code execution facilities."""
+import json
 import logging
 import re
 
@@ -8,6 +9,40 @@ from guardx.sandbox.stypes import ExecutionResults
 from guardx.schemas import Execution
 
 logger = logging.getLogger(__name__)
+
+
+def _serialize_globals(globals_dict):
+    """Serialize globals dictionary, filtering out non-serializable items.
+    
+    Args:
+        globals_dict: Dictionary of global variables
+        
+    Returns:
+        Dictionary with only JSON-serializable items
+    """
+    if globals_dict is None:
+        return {}
+    
+    serializable_globals = {}
+    skipped_keys = []
+    
+    for key, value in globals_dict.items():
+        # Skip __builtins__ - it will be added automatically in the executor
+        if key == "__builtins__":
+            continue
+            
+        try:
+            # Test if the value is JSON serializable
+            json.dumps(value)
+            serializable_globals[key] = value
+        except (TypeError, ValueError) as e:
+            skipped_keys.append(key)
+            logger.warning(f"Skipping non-serializable global variable '{key}': {type(value).__name__}")
+    
+    if skipped_keys:
+        logger.info(f"Skipped {len(skipped_keys)} non-serializable global variable(s): {', '.join(skipped_keys)}")
+    
+    return serializable_globals
 
 
 class PythonExecutesWithSeccomp:
@@ -27,11 +62,14 @@ class PythonExecutesWithSeccomp:
             self.config.docker_image = f"lab-validator:{guardx.__version__}"
         self.c_wrapper = _container.Container(self.config.docker_image)
 
-    def __call__(self, code: str) -> ExecutionResults:
+    def __call__(self, code: str, globals: dict = None) -> ExecutionResults:
         """Execute code as a container under the specified policy.
 
         Args:
             code: code to be executed.
+            globals: dictionary of global variables to pass into the execution environment.
+                    Note: Only JSON-serializable values are supported. __builtins__ is
+                    automatically provided and should not be included.
 
         Returns:
             Execution results.
@@ -46,6 +84,12 @@ class PythonExecutesWithSeccomp:
         # sh.addfile(tarinfo=harness_tar_info, fileobj=io.BytesIO(_ENCODED_RUNNER_HARNESS))
         self.c_wrapper.put_resource('docker_seccomp_default.json')
         self.c_wrapper.put_resource('_executor.py')
+        
+        # Serialize and put globals into the container as JSON
+        # This filters out non-serializable items like __builtins__
+        serializable_globals = _serialize_globals(globals)
+        if serializable_globals:
+            self.c_wrapper.put_json('globals.json', serializable_globals)
 
         # run the code in a containerized environment. Try 3 times.
         # TODO Kill the code if it takes too long.

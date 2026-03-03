@@ -1,5 +1,6 @@
 import ast
 import json
+import os
 import sys
 
 from pyseccomp import ALLOW, EQ, KILL, LOG, Arg, SyscallFilter
@@ -256,8 +257,20 @@ def unsafe_exec_python(python_code, globals, locals):
 
 
 python_code = open("file.py", "r").read()
+
+# Load globals from JSON file if it exists
+globals_dict = {}
+if os.path.exists("globals.json"):
+    with open("globals.json", "r") as f:
+        globals_dict = json.load(f)
+
+# Always add __builtins__ to globals so exec can use built-in functions
+# This is required for proper Python execution
+if "__builtins__" not in globals_dict:
+    globals_dict["__builtins__"] = __builtins__
+
 setup_seccomp(sys.argv[1])
-result, globals, locals = unsafe_exec_python(python_code, {}, {})
+result, globals, locals = unsafe_exec_python(python_code, globals_dict, {})
 
 # Try to serialize all of the locals. Exclude anything that isn't serializable.
 serialized_stringified_locals = {}
