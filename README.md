@@ -97,9 +97,21 @@ globals_dict = {
     "multiplier": 2
 }
 result = g.execute(code, globals=globals_dict)
+
+# Example: Passing configuration
+code = "result = data['value'] * config['multiplier']"
+globals_dict = {
+    "data": {"value": 100},
+    "config": {"multiplier": 2.5, "threshold": 10}
+}
+result = g.execute(code, globals=globals_dict)
 ```
 
-**Note:** Global variables must be JSON-serializable (strings, numbers, lists, dicts, booleans, None).
+**Important Notes:**
+- Global variables must be **JSON-serializable** (strings, numbers, lists, dicts, booleans, None)
+- **Do NOT include `__builtins__`** - it is automatically provided by the executor
+- Non-serializable objects (functions, classes, modules, file handles) will be automatically filtered out with a warning
+- Only the serializable values will be passed to the sandbox
 
 ## Development 
 

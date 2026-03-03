@@ -382,3 +382,58 @@ print(result)
     content_before_metadata = output_str.split('--', 1)[0].replace('\n', '')
     
     assert content_before_metadata == '6', "Prior state simulation with globals failed!"
+
+
+def test_execute_with_builtins_filtered():
+    """Test that __builtins__ is automatically handled and doesn't cause serialization errors."""
+    python_code = """
+# Test that built-in functions work even though we don't pass __builtins__
+result = len([1, 2, 3, 4, 5])
+print(result)
+"""
+    
+    g = Guardx(config_path="./resources/config.yaml")
+    
+    # Try to pass __builtins__ (should be filtered out automatically)
+    globals_dict = {
+        "__builtins__": __builtins__,  # This should be filtered
+        "data": [1, 2, 3]
+    }
+    
+    # Should not raise serialization error
+    result = g.execute(python_code, globals=globals_dict).get_docker_result()
+    
+    output_str = result.output.decode('utf-8')
+    content_before_metadata = output_str.split('--', 1)[0].replace('\n', '')
+    
+    assert content_before_metadata == '5', "Built-ins should work even when __builtins__ is filtered!"
+
+
+def test_execute_with_non_serializable_globals():
+    """Test that non-serializable globals are filtered out gracefully."""
+    python_code = """
+# Use only the serializable values
+result = numbers[0] + config['value']
+print(result)
+"""
+    
+    g = Guardx(config_path="./resources/config.yaml")
+    
+    # Mix of serializable and non-serializable values
+    def my_function():
+        return 42
+    
+    globals_dict = {
+        "numbers": [10, 20, 30],           # Serializable
+        "config": {"value": 5},            # Serializable
+        "my_func": my_function,            # Non-serializable (should be filtered)
+        "__builtins__": __builtins__,      # Non-serializable (should be filtered)
+    }
+    
+    # Should not raise error, just filter out non-serializable items
+    result = g.execute(python_code, globals=globals_dict).get_docker_result()
+    
+    output_str = result.output.decode('utf-8')
+    content_before_metadata = output_str.split('--', 1)[0].replace('\n', '')
+    
+    assert content_before_metadata == '15', "Should work with only serializable globals!"

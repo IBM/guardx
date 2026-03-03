@@ -264,6 +264,11 @@ if os.path.exists("globals.json"):
     with open("globals.json", "r") as f:
         globals_dict = json.load(f)
 
+# Always add __builtins__ to globals so exec can use built-in functions
+# This is required for proper Python execution
+if "__builtins__" not in globals_dict:
+    globals_dict["__builtins__"] = __builtins__
+
 setup_seccomp(sys.argv[1])
 result, globals, locals = unsafe_exec_python(python_code, globals_dict, {})
 
