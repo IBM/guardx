@@ -27,11 +27,12 @@ class PythonExecutesWithSeccomp:
             self.config.docker_image = f"lab-validator:{guardx.__version__}"
         self.c_wrapper = _container.Container(self.config.docker_image)
 
-    def __call__(self, code: str) -> ExecutionResults:
+    def __call__(self, code: str, globals: dict = None) -> ExecutionResults:
         """Execute code as a container under the specified policy.
 
         Args:
             code: code to be executed.
+            globals: dictionary of global variables to pass into the execution environment.
 
         Returns:
             Execution results.
@@ -46,6 +47,10 @@ class PythonExecutesWithSeccomp:
         # sh.addfile(tarinfo=harness_tar_info, fileobj=io.BytesIO(_ENCODED_RUNNER_HARNESS))
         self.c_wrapper.put_resource('docker_seccomp_default.json')
         self.c_wrapper.put_resource('_executor.py')
+        
+        # Put globals into the container as JSON
+        if globals is not None:
+            self.c_wrapper.put_json('globals.json', globals)
 
         # run the code in a containerized environment. Try 3 times.
         # TODO Kill the code if it takes too long.

@@ -41,6 +41,7 @@ class Guardx(object):
         code: str,
         analysis_results: AnalysisResults = None,
         dryrun: bool = False, #NOSONAR
+        globals: dict = None,
     ) -> ExecutionResults:
         """Execute code in a sandbox guarded by security policies.
 
@@ -49,6 +50,7 @@ class Guardx(object):
           policy: a set defining the policy enforced by the execution sandbox
           analysis_results: a dictionary with the results of a previously executed analysis step
           dryrun: a flag specifying whether the execution should be a dry run or actual execution
+          globals: a dictionary of global variables to be passed into the sandbox execution
 
         Returns:
           The execution results
@@ -56,5 +58,5 @@ class Guardx(object):
         """
         logging.getLogger().setLevel(logging.INFO)
         v = executor.PythonExecutesWithSeccomp(self.config.execution)
-        result = v(code)
+        result = v(code, globals)
         return result

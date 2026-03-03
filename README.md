@@ -67,7 +67,39 @@ print(result)
 # To execute code in sandbox with a default security policy
 result = g.execute(python_code).get_docker_result()
 print(result)
+
+# To execute code with global variables passed into the sandbox
+globals_dict = {"x": 10, "y": 20}
+result = g.execute(python_code, globals=globals_dict).get_docker_result()
+print(result)
 ```
+
+#### Passing Global Variables to Sandbox Execution
+
+You can pass global variables into the sandbox execution environment using the `globals` parameter. This is useful for:
+- Providing prior execution state
+- Passing configuration or context data
+- Simulating stateful execution across multiple code snippets
+
+```python
+# Example: Using globals for stateful execution
+code1 = "counter = 1"
+result1 = g.execute(code1)
+
+# Continue with prior state
+code2 = "counter += 1; print(counter)"
+result2 = g.execute(code2, globals={"counter": 1})
+
+# Example: Passing complex data structures
+code = "result = sum(numbers) * multiplier"
+globals_dict = {
+    "numbers": [1, 2, 3, 4, 5],
+    "multiplier": 2
+}
+result = g.execute(code, globals=globals_dict)
+```
+
+**Note:** Global variables must be JSON-serializable (strings, numbers, lists, dicts, booleans, None).
 
 ## Development 
 
