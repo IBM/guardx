@@ -3,10 +3,13 @@ import json
 import logging
 import tarfile
 from importlib import resources as impresources
+from typing import TYPE_CHECKING
 
 import docker
-
 from guardx import sandbox
+
+if TYPE_CHECKING:
+    from docker.errors import DockerException
 
 
 class Container:
@@ -25,12 +28,12 @@ class Container:
         """Start the container, sleep for infinity and return handle."""
         try:
             client = docker.from_env()
-        except docker.errors.DockerException as de:
+        except docker.errors.DockerException as de:  # type: ignore[attr-defined]
             raise RuntimeError(
                 "DockerException when trying to get a docker client for the PythonExecutes validator. \
                     Perhaps you need to run a Docker daemon/podman machine?"
             ) from de
-        self.container = client.containers.create(self.docker_image, "sleep infinity")
+        self.container = client.containers.create(self.docker_image, "sleep infinity", detach=True)
         self.container.start()
         logging.info(f"Container using image {self.docker_image} has now started. Info: {self.container}")
 
@@ -133,3 +136,4 @@ class Container:
         tarstream.seek(0)
         self.container.put_archive("/", tarstream)
         return self.container
+

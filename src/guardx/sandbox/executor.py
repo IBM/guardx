@@ -2,6 +2,7 @@
 import json
 import logging
 import re
+from typing import Any
 
 import guardx
 from guardx.containers import _container
@@ -62,7 +63,7 @@ class PythonExecutesWithSeccomp:
             self.config.docker_image = f"lab-validator:{guardx.__version__}"
         self.c_wrapper = _container.Container(self.config.docker_image)
 
-    def __call__(self, code: str, globals: dict = None) -> ExecutionResults:
+    def __call__(self, code: str, globals: dict | None = None) -> ExecutionResults:
         """Execute code as a container under the specified policy.
 
         Args:
@@ -90,7 +91,7 @@ class PythonExecutesWithSeccomp:
         serializable_globals = _serialize_globals(globals)
         if serializable_globals:
             self.c_wrapper.put_json('globals.json', serializable_globals)
-
+        result: Any = None
         # run the code in a containerized environment. Try 3 times.
         # TODO Kill the code if it takes too long.
         tries = 0

@@ -14,7 +14,7 @@ class ConfigLoader:
     """A configuration loader."""
 
     @staticmethod
-    def load_config(path: str = None) -> Config:
+    def load_config(path: str | None) -> Config:
         """Load the SDK configuration from a file path.
 
         Args:

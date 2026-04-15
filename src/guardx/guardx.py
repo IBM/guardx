@@ -6,12 +6,13 @@ import guardx.sandbox.executor as executor
 from guardx.analysis import AnalysisResults, AnalysisType, StaticAnalysis
 from guardx.config import ConfigLoader
 from guardx.sandbox.stypes import ExecutionResults
+from guardx.schemas import Config
 
 
 class Guardx(object):
     """GuardX class exposing the main consumer API."""
 
-    def __init__(self, config: Dict = None, config_path: str = None) -> None:
+    def __init__(self, config: Config | None = None, config_path: str | None = None) -> None:
         """Entry init block for Guardx.
 
         Args:
@@ -20,7 +21,7 @@ class Guardx(object):
 
         """
         super().__init__()
-        self.config = ConfigLoader.load_config(config_path) if config is None else config
+        self.config: Config = ConfigLoader.load_config(config_path) if config is None else config
 
     def analyze(self, code: str, analyses: Set[AnalysisType]) -> AnalysisResults:
         """Analyze code using analysis type.
@@ -39,9 +40,9 @@ class Guardx(object):
     def execute(
         self,
         code: str,
-        analysis_results: AnalysisResults = None,
+        analysis_results: AnalysisResults | None = None,
         dryrun: bool = False, #NOSONAR
-        globals: dict = None,
+        globals: dict | None = None,
     ) -> ExecutionResults:
         """Execute code in a sandbox guarded by security policies.
 
@@ -57,6 +58,8 @@ class Guardx(object):
 
         """
         logging.getLogger().setLevel(logging.INFO)
+        if self.config.execution is None:
+            raise ValueError("Execution configuration is required but not provided")
         v = executor.PythonExecutesWithSeccomp(self.config.execution)
         result = v(code, globals)
         return result

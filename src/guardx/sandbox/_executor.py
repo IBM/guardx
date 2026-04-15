@@ -2,6 +2,7 @@ import ast
 import json
 import os
 import sys
+from typing import cast
 
 from pyseccomp import ALLOW, EQ, KILL, LOG, Arg, SyscallFilter
 
@@ -229,31 +230,37 @@ def setup_seccomp(category):
     f.load()
 
 
-def unsafe_exec_python(python_code, globals, locals):
+def unsafe_exec_python(python_code, globals_dict, locals_dict):
     parsed_statements = list(ast.iter_child_nodes(ast.parse(python_code)))
     if len(parsed_statements) > 1:
         exec(
             compile(
-                ast.Module(body=parsed_statements[:-1], type_ignores=[]),
+                ast.Module(body=cast(list[ast.stmt], parsed_statements[:-1]), type_ignores=[]),
                 filename="<ast>",
                 mode="exec",
             ),
-            globals,
-            locals,
+            globals_dict,
+            locals_dict,
         )
-    return (
-        eval(
-            compile(
-                ast.Expression(body=parsed_statements[-1].value),
-                filename="<ast>",
-                mode="eval",
+    last_statement = parsed_statements[-1]
+    # Type guard: ensure last statement is an Expr node with a value attribute
+    if isinstance(last_statement, ast.Expr):
+        return (
+            eval(
+                compile(
+                    ast.Expression(body=last_statement.value),
+                    filename="<ast>",
+                    mode="eval",
+                ),
+                globals_dict,
+                locals_dict,
             ),
-            globals,
-            locals,
-        ),
-        globals,
-        locals,
-    )
+            globals_dict,
+            locals_dict,
+        )
+    else:
+        # If last statement is not an expression, return None
+        return (None, globals_dict, locals_dict)
 
 
 python_code = open("file.py", "r").read()
@@ -270,13 +277,13 @@ if "__builtins__" not in globals_dict:
     globals_dict["__builtins__"] = __builtins__
 
 setup_seccomp(sys.argv[1])
-result, globals, locals = unsafe_exec_python(python_code, globals_dict, {})
+result, result_globals, result_locals = unsafe_exec_python(python_code, globals_dict, {})
 
 # Try to serialize all of the locals. Exclude anything that isn't serializable.
 serialized_stringified_locals = {}
-for local in locals.keys():
+for local in result_locals.keys():
     try:
-        serialized_stringified_locals[local] = str(locals[local])
+        serialized_stringified_locals[local] = str(result_locals[local])
     except Exception:
         pass
 

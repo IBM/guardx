@@ -1,8 +1,11 @@
 """Define types for the analysis package."""
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import docker
+
+if TYPE_CHECKING:
+    from docker.models.containers import ExecResult
 
 
 class PolicyType(str, Enum):
@@ -32,7 +35,7 @@ class ExecutionResultKey(str, Enum):
 class ExecutionResults(Dict):
     """Execution summary dictionary."""
 
-    def __init__(self, docker_exec_result: docker.models.containers.ExecResult):
+    def __init__(self, docker_exec_result: 'ExecResult'):
         """Constructor.
 
         Initializes execution results.
@@ -43,14 +46,14 @@ class ExecutionResults(Dict):
         # self.stdout = stdout
         self.docker_exec_result = docker_exec_result
 
-    def get_exit_code(self) -> Dict:
+    def get_exit_code(self) -> int | None:
         """Return the exist code from the execution."""
         return self[ExecutionResultKey.EXIT_CODE] if ExecutionResultKey.EXIT_CODE in self else None
 
-    def get_violations(self) -> List[str]:
+    def get_violations(self) -> List[str] | None:
         """Return the set of policy violations detected in the program execution."""
         return self[ExecutionResultKey.VIOLATIONS] if ExecutionResultKey.VIOLATIONS in self else None
 
-    def get_docker_result(self) -> docker.models.containers.ExecResult:
+    def get_docker_result(self) -> 'ExecResult':
         """Return sandbox execution results."""
         return self.docker_exec_result
