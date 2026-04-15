@@ -2,7 +2,7 @@
 import ast
 import logging
 import subprocess
-from typing import List, Set
+from typing import List, Optional, Set
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
@@ -34,7 +34,7 @@ class SpecializationAnalysis:
         super().__init__()
         self.code = code
         self.__check_code_syntax()
-        self.functions = self.__analyze(STDLIB_PATTERN)
+        self.functions = self.__analyze()
 
     def __check_code_syntax(self):
         """Validate the code syntax."""
@@ -44,7 +44,7 @@ class SpecializationAnalysis:
             logging.error(f"Invalid input code {repr(self.code)}: {err}")
             raise SyntaxError(f"Invalid input: {repr(self.code)}. This is not a valid Python code.") from err
 
-    def __analyze(self, pattern: List[str] | None) -> Set:
+    def __analyze(self, pattern: Optional[List[str]] = None) -> Set:
         logging.debug(f"Compiling input code: {repr(self.code)}")
         try:
             result = subprocess.run([SC_LIST, self.code], capture_output=True, shell=False, text=True, check=True)
@@ -57,7 +57,7 @@ class SpecializationAnalysis:
             elffile = ELFFile(f)
             return self.read_symbol_table_functions(elffile, pattern)
 
-    def read_symbol_table_functions(self, elffile, pattern: List[str] | None) -> Set:
+    def read_symbol_table_functions(self, elffile, pattern: Optional[List[str]] = None) -> Set:
         """Display the functions found in the symbol tables contained in the file."""
         symbol_tables = [(idx, s) for idx, s in enumerate(elffile.iter_sections()) if isinstance(s, SymbolTableSection)]
 
