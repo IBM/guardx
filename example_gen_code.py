@@ -10,7 +10,7 @@ API_KEY = "DummyKeyAIzaSyDaGmWKa4JsXZ-HjGw7ISLn_3namBGewQe Detect Me" #NOSONAR
 
 def test_yaml_load():
     ystr = yaml.dump({'a': 1, 'b': 2, 'c': 3})
-    y = yaml.load(ystr) #NOSONAR
+    y = yaml.load(ystr, Loader=yaml.SafeLoader) #NOSONAR
     yaml.dump(y)
     try:
         y = yaml.load(ystr, Loader=yaml.CSafeLoader)
@@ -21,15 +21,15 @@ def test_yaml_load():
 
 def test_json_load():
     # no issue should be found
-    j = json.load("{}") #NOSONAR
+    j = json.loads("{}") #NOSONAR
 
 yaml.load("{}", Loader=yaml.Loader)
 
 # no issue should be found
-yaml.load("{}", SafeLoader)
-yaml.load("{}", yaml.SafeLoader)
-yaml.load("{}", CSafeLoader)
-yaml.load("{}", yaml.CSafeLoader)
+yaml.load("{}", Loader=SafeLoader)
+yaml.load("{}", Loader=yaml.SafeLoader)
+yaml.load("{}", Loader=CSafeLoader)
+yaml.load("{}", Loader=yaml.CSafeLoader)
 
 
 print("Hello World")

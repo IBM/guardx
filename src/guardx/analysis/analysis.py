@@ -4,12 +4,17 @@ import json
 import logging
 from typing import Set
 
+import importlib.metadata
 from guardx.analysis.specialization import SpecializationAnalysis, SpecializationAnalysisType
 from guardx.analysis.types import AnalysisResults, AnalysisType
 from guardx.containers import _container
 from guardx.schemas import Config
 
 logger = logging.getLogger(__name__)
+try:
+    __version__ = importlib.metadata.version("guardx")
+except Exception:
+    __version__ = "latest"
 
 
 class StaticAnalysis(object):
@@ -33,6 +38,7 @@ class StaticAnalysis(object):
         self.container = None
         self.container_work_dir = "/app"
         self.file_name = "file.py"
+
 
     def analyze(self) -> AnalysisResults:
         """Execute static analyses on the input code."""
@@ -108,7 +114,7 @@ class StaticAnalysis(object):
         logger.debug(result)
         return self.__summarize_bandit(result)
 
-    def init_runner(self, image_name="lab-analyzer:latest"):
+    def init_runner(self, image_name=f"lab-analyzer:{__version__}"):
         """Initialize a container, move code into it, summarize results of static analysis.
 
         Args:

@@ -9,16 +9,19 @@ import json
 import logging
 import re
 import tarfile
-from typing import Optional, TypedDict, Set
+from typing import Optional, TypedDict, Set, TYPE_CHECKING
 
 import docker
+
+if TYPE_CHECKING:
+    from docker.models.containers import ExecResult
 
 class ExecutionResult(TypedDict):
     success: bool
     result: Optional[str]
     locals: Optional[str]
     stdout: Optional[str]
-    docker_exec_result: docker.models.containers.ExecResult
+    docker_exec_result: 'ExecResult'
 
 class PythonExecutes:
     def __init__(self):
@@ -52,9 +55,10 @@ class PythonExecutes:
 
         result = guardx.Guardx().analyze(python_code, {AnalysisType.DETECT_SECRET, AnalysisType.UNSAFE_CODE})
         print(result)
+        return result
 
     def _format_result(
-        self, docker_result: docker.models.containers.ExecResult
+        self, docker_result: 'ExecResult'
     ) -> ExecutionResult:
         """Formats the result from the wrapper script.
 

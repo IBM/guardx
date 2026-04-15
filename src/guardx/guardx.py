@@ -40,7 +40,7 @@ class Guardx(object):
     def execute(
         self,
         code: str,
-        analysis_results: AnalysisResults | None,
+        analysis_results: AnalysisResults | None = None,
         dryrun: bool = False, #NOSONAR
         globals: dict | None = None,
     ) -> ExecutionResults:
