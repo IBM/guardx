@@ -52,8 +52,8 @@ GuardX analyzes AI generated code snippets using:
 * Intent profiles
   Based on syscall analysis of "similar code", GuardX will try to match the required permissions of the generated code snippet to a set of predefined intents
 
-1. Execution
+2. Execution
 ------------
 
-Execution of AI generated code poses a high security risk for application users and data owners. To enable this GuardX orchestrates sand boxed containers or VMs (future). Containers can be sand boxed with seccomp policies which are derived from intent profiles. GuardX takes care of instantiating the execution environment, applying appropriate security profiles and verifying the output. 
+Execution of AI generated code poses a high security risk for application users and data owners. To enable this, GuardX uses sandboxed containers or VMs (future). AI generated code is run inside the sandboxed container. Inside the container, the process used to execute the AI generated code is further sandboxed using seccomp policies. These seccomp policies are derived from intent profiles of the code or selected from a list of seccomp profiles such as `no network,` `strict,` and `memory only.` GuardX takes care of instantiating the execution environment, applying appropriate security profiles and verifying the output. 
 
