@@ -3,9 +3,8 @@ Security Analysis
 
 GuardX provides a common interface for statically scanning Python code for safety and security issues.
 
-Analysis can be invoked like so:
+Analysis can be invoked like so::
 
-.. code-block:: python
     result = guardx.Guardx().analyze(python_code, {AnalysisType.UNSAFE_CODE, AnalysisType.DETECT_SECRET})
 
 **AnalysisType.UNSAFE_CODE:**
@@ -18,7 +17,7 @@ By default, all tests in Bandit and detect-secrets are run. Details of the tests
 and can be found on the respective project's website.
 
 Bandit Tests `ref <https://bandit.readthedocs.io/en/latest/plugins/index.html>`_
----------------------------------------------------------------------------------
+================================================================================
 
 Bandit includes tests for various security vulnerabilities. Full list `here <https://bandit.readthedocs.io/en/latest/plugins/index.html#complete-test-plugin-listing>`_
 
