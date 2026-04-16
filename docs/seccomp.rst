@@ -1,4 +1,5 @@
-## Seccomp policy category
+Seccomp policy category
+=======================
 
 The process (Python) running the AI code inside the container is further constrained with seccomp.
 
