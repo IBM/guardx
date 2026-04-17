@@ -1,10 +1,23 @@
 Security Analysis
 =================
 
-GuardX uses `Bandit <https://bandit.readthedocs.io/en/latest/>`_ for static security analysis of Python code and identify security issues before execution.
+GuardX provides a common interface for statically scanning Python code for safety and security issues.
+
+Analysis can be invoked like so::
+
+    result = guardx.Guardx().analyze(python_code, {AnalysisType.UNSAFE_CODE, AnalysisType.DETECT_SECRET})
+
+**AnalysisType.UNSAFE_CODE:**
+Runs `Bandit <https://bandit.readthedocs.io/en/latest/>`_ for static security analysis of Python code and identify security issues before execution.
+
+**AnalysisType.DETECT_SECRET:**
+Runs `detect-secrets <https://github.com/Yelp/detect-secrets>`_  checks for *secrets* in code.
+
+By default, all tests in Bandit and detect-secrets are run. Details of the tests are listed below
+and can be found on the respective project's website.
 
 Bandit Tests `ref <https://bandit.readthedocs.io/en/latest/plugins/index.html>`_
----------------------------------------------------------------------------------
+================================================================================
 
 Bandit includes tests for various security vulnerabilities. Full list `here <https://bandit.readthedocs.io/en/latest/plugins/index.html#complete-test-plugin-listing>`_
 
@@ -73,10 +86,6 @@ Bandit supports YAML configuration files:
 
 Detect-Secrets
 ==============
-
-
-`detect-secrets <https://github.com/Yelp/detect-secrets>`_  checks for the following *secrets* in code
-
 
 **Secret Types**
   * API keys and tokens
